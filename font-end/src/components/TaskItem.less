@@ -1,0 +1,149 @@
+@import (reference) '../../node_modules/@radix-ui/colors/gray.css';
+@import (reference) '../../node_modules/@radix-ui/colors/blue.css';
+
+/* 调色板 */
+@base-color: #ffffff;
+@surface-color: #f9f9f9;
+@primary-text: #1a1a1a;
+@accent-color: #4a90e2;
+@completed-text: #999999;
+@border-color: #e0e0e0;
+@tag-bg: #e6f0fa;
+@tag-text: #4a90e2;
+
+.task-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background-color: @base-color;
+  border: 1px solid @border-color;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  
+  &:focus {
+    outline: 2px solid @accent-color;
+    outline-offset: 2px;
+  }
+  
+  &.selected {
+    background-color: #f0f8ff;
+    border-color: @accent-color;
+  }
+  
+  &.completed {
+    .task-title {
+      text-decoration: line-through;
+      color: @completed-text;
+    }
+    
+    .task-description {
+      text-decoration: line-through;
+      color: @completed-text;
+    }
+  }
+}
+
+.task-checkbox {
+  width: 20px;
+  height: 20px;
+  border: 2px solid @border-color;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: @base-color;
+  flex-shrink: 0;
+  margin-top: 2px;
+  
+  &:focus {
+    outline: 2px solid @accent-color;
+    outline-offset: 2px;
+  }
+  
+  &[data-state='checked'] {
+    background-color: @accent-color;
+    border-color: @accent-color;
+  }
+}
+
+.task-checkbox-indicator {
+  color: @base-color;
+  width: 16px;
+  height: 16px;
+}
+
+.task-content {
+  flex: 1;
+}
+
+.edit-input {
+  width: 100%;
+  padding: 8px;
+  font-size: 16px;
+  border: 1px solid @border-color;
+  border-radius: 4px;
+  font-family: inherit;
+  
+  &:focus {
+    outline: 2px solid @accent-color;
+    border-color: @accent-color;
+  }
+}
+
+.task-text {
+  cursor: pointer;
+}
+
+.task-title {
+  font-size: 16px;
+  margin-bottom: 4px;
+  color: @primary-text;
+}
+
+.task-description {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 8px;
+}
+
+.task-tag {
+  display: inline-block;
+  background-color: @tag-bg;
+  color: @tag-text;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.delete-button {
+  background: none;
+  border: none;
+  color: #ccc;
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  
+  &:hover {
+    color: #ff6b6b;
+    background-color: rgba(255, 107, 107, 0.1);
+  }
+  
+  &:focus {
+    outline: 2px solid @accent-color;
+    outline-offset: 2px;
+  }
+  
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}

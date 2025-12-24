@@ -1,0 +1,120 @@
+@import (reference) '../node_modules/@radix-ui/colors/gray.css';
+@import (reference) '../node_modules/@radix-ui/colors/blue.css';
+
+/* 调色板 */
+@base-color: #ffffff;
+@surface-color: #f9f9f9;
+@primary-text: #1a1a1a;
+@accent-color: #4a90e2;
+@completed-text: #999999;
+@border-color: #e0e0e0;
+@overlay-color: rgba(255, 255, 255, 0.8);
+@tag-bg: #e6f0fa;
+@tag-text: #4a90e2;
+@stats-text: #888888;
+@placeholder-text: #bbbbbb;
+
+/* 排版 */
+@heading-font: 'Inter', 'Helvetica Neue', sans-serif;
+@body-font: 'Inter', 'Helvetica Neue', sans-serif;
+
+.app {
+  min-height: 100vh;
+  background-color: @base-color;
+  display: flex;
+  flex-direction: column;
+  font-family: @body-font;
+  color: @primary-text;
+  padding: 0 16px;
+  max-width: 800px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.app-header {
+  padding: 24px 0;
+  
+  h1 {
+    font-family: @heading-font;
+    font-weight: 700;
+    font-size: 24px;
+    margin: 0 0 16px 0;
+    color: @primary-text;
+  }
+}
+
+.header-actions {
+  margin-bottom: 24px;
+}
+
+.app-main {
+  flex: 1;
+  margin-bottom: 24px;
+}
+
+.filter-section {
+  margin-bottom: 16px;
+}
+
+.app-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  border-top: 1px solid @border-color;
+  margin-top: auto;
+}
+
+.tag-manager-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1px solid @accent-color;
+  color: @accent-color;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background-color: @tag-bg;
+  }
+  
+  .icon {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* 动画 */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOutUp {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+.fade-enter {
+  animation: fadeInDown 0.2s ease-out forwards;
+}
+
+.fade-exit {
+  animation: fadeOutUp 0.2s ease-out forwards;
+}

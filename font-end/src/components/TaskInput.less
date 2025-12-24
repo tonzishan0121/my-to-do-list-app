@@ -1,0 +1,336 @@
+@import (reference) '../../node_modules/@radix-ui/colors/gray.css';
+@import (reference) '../../node_modules/@radix-ui/colors/blue.css';
+
+/* 调色板 */
+@base-color: #ffffff;
+@surface-color: #f9f9f9;
+@primary-text: #1a1a1a;
+@accent-color: #4a90e2;
+@border-color: #e0e0e0;
+@placeholder-text: #bbbbbb;
+
+/* 标签颜色 */
+@tag-shopping: #ff6b6b;
+@tag-work: #4a90e2;
+@tag-personal: #50e3c2;
+@tag-study: #f5a623;
+@tag-health: #7ed321;
+@tag-family: #bd10e0;
+@tag-default: #9b9b9b;
+
+.task-input {
+  .input-group {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  
+  .title-input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1px solid @border-color;
+    border-radius: 8px;
+    font-size: 16px;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    
+    &::placeholder {
+      color: @placeholder-text;
+      font-style: italic;
+    }
+    
+    &:focus {
+      outline: none;
+      border-color: @accent-color;
+      box-shadow: 0 0 0 2px fade(@accent-color, 20%);
+    }
+  }
+  
+  .tag-select-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 12px;
+    background-color: @surface-color;
+    border: 1px solid @border-color;
+    border-radius: 8px;
+    cursor: pointer;
+    min-width: 100px;
+    height: 44px;
+    transition: all 0.2s ease;
+    gap: 6px;
+    
+    &:hover {
+      border-color: darken(@border-color, 10%);
+    }
+    
+    &:focus {
+      outline: none;
+      border-color: @accent-color;
+      box-shadow: 0 0 0 2px fade(@accent-color, 20%);
+    }
+    
+    .select-icon {
+      width: 16px;
+      height: 16px;
+      transition: transform 0.2s ease;
+    }
+    
+    &[data-state='open'] .select-icon {
+      transform: rotate(180deg);
+    }
+  }
+  
+  /* 标签颜色样式 */
+  .tag-shopping {
+    color: @tag-shopping;
+    border-color: fade(@tag-shopping, 30%);
+    background-color: fade(@tag-shopping, 10%);
+    
+    &:focus {
+      border-color: @tag-shopping;
+      box-shadow: 0 0 0 2px fade(@tag-shopping, 20%);
+    }
+  }
+  
+  .tag-work {
+    color: @tag-work;
+    border-color: fade(@tag-work, 30%);
+    background-color: fade(@tag-work, 10%);
+    
+    &:focus {
+      border-color: @tag-work;
+      box-shadow: 0 0 0 2px fade(@tag-work, 20%);
+    }
+  }
+  
+  .tag-personal {
+    color: @tag-personal;
+    border-color: fade(@tag-personal, 30%);
+    background-color: fade(@tag-personal, 10%);
+    
+    &:focus {
+      border-color: @tag-personal;
+      box-shadow: 0 0 0 2px fade(@tag-personal, 20%);
+    }
+  }
+  
+  .tag-study {
+    color: @tag-study;
+    border-color: fade(@tag-study, 30%);
+    background-color: fade(@tag-study, 10%);
+    
+    &:focus {
+      border-color: @tag-study;
+      box-shadow: 0 0 0 2px fade(@tag-study, 20%);
+    }
+  }
+  
+  .tag-health {
+    color: @tag-health;
+    border-color: fade(@tag-health, 30%);
+    background-color: fade(@tag-health, 10%);
+    
+    &:focus {
+      border-color: @tag-health;
+      box-shadow: 0 0 0 2px fade(@tag-health, 20%);
+    }
+  }
+  
+  .tag-family {
+    color: @tag-family;
+    border-color: fade(@tag-family, 30%);
+    background-color: fade(@tag-family, 10%);
+    
+    &:focus {
+      border-color: @tag-family;
+      box-shadow: 0 0 0 2px fade(@tag-family, 20%);
+    }
+  }
+  
+  .tag-default {
+    color: @tag-default;
+    border-color: fade(@tag-default, 30%);
+    background-color: fade(@tag-default, 10%);
+    
+    &:focus {
+      border-color: @tag-default;
+      box-shadow: 0 0 0 2px fade(@tag-default, 20%);
+    }
+  }
+  
+  .tag-select-content {
+    background-color: @base-color;
+    border: 1px solid @border-color;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    overflow: hidden;
+    z-index: 100;
+    animation-duration: 0.2s;
+    min-width: 120px;
+    
+    &[data-state='open'] {
+      animation-name: slideDown;
+    }
+    
+    &[data-state='closed'] {
+      animation-name: slideUp;
+    }
+  }
+  
+  .tag-select-item {
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    
+    &[data-highlighted] {
+      background-color: @surface-color;
+    }
+    
+    &[data-state='checked'] {
+      background-color: fade(@accent-color, 10%);
+      font-weight: 500;
+      
+      &::after {
+        content: '';
+        position: absolute;
+        left: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background-color: @accent-color;
+      }
+    }
+    
+    /* 为每个标签类型设置颜色 */
+    &.tag-shopping[data-state='checked']::after {
+      background-color: @tag-shopping;
+    }
+    
+    &.tag-work[data-state='checked']::after {
+      background-color: @tag-work;
+    }
+    
+    &.tag-personal[data-state='checked']::after {
+      background-color: @tag-personal;
+    }
+    
+    &.tag-study[data-state='checked']::after {
+      background-color: @tag-study;
+    }
+    
+    &.tag-health[data-state='checked']::after {
+      background-color: @tag-health;
+    }
+    
+    &.tag-family[data-state='checked']::after {
+      background-color: @tag-family;
+    }
+    
+    &.tag-default[data-state='checked']::after {
+      background-color: @tag-default;
+    }
+  }
+  
+  .add-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background-color: @accent-color;
+    color: @base-color;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background-color: darken(@accent-color, 5%);
+      transform: translateY(-1px);
+    }
+    
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px fade(@accent-color, 40%);
+    }
+    
+    &:active {
+      transform: translateY(0);
+    }
+    
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+  
+  .description-section {
+    margin-top: 8px;
+  }
+  
+  .description-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid @border-color;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    resize: vertical;
+    min-height: 60px;
+    transition: all 0.2s ease;
+    
+    &::placeholder {
+      color: @placeholder-text;
+      font-style: italic;
+    }
+    
+    &:focus {
+      outline: none;
+      border-color: @accent-color;
+      box-shadow: 0 0 0 2px fade(@accent-color, 20%);
+    }
+  }
+  
+  .toggle-description {
+    background: none;
+    border: none;
+    color: @accent-color;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 4px 0;
+    margin-top: 4px;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      color: darken(@accent-color, 10%);
+      text-decoration: underline;
+    }
+  }
+}
+
+/* 动画关键帧 */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}

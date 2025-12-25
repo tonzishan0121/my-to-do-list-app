@@ -1,0 +1,44 @@
+{
+  "tasks": [
+    {
+      "id": 1735046400000,
+      "content": "学习 React 源码 - React Fiber 架构",
+      "description": "阅读 React 18 的 Fiber 架构文档，理解时间切片原理",
+      "category": "personal",
+      "status": "active",
+      "createdAt": 1735046400000,
+      "deletedAt": null
+    },
+    {
+      "id": 1735132800000,
+      "content": "准备项目周报",
+      "description": "整理本周开发进度，汇总遇到的技术问题",
+      "category": "work",
+      "status": "completed",
+      "createdAt": 1735132800000,
+      "deletedAt": null
+    },
+    {
+      "id": 1735219200000,
+      "content": "买牛奶和面包",
+      "description": "周末早餐采购",
+      "category": "shopping",
+      "status": "active",
+      "createdAt": 1735219200000,
+      "deletedAt": null
+    },
+    {
+      "id": 1735305600000,
+      "content": "这个任务已经软删除了",
+      "description": "测试软删除功能，15天后会自动清除",
+      "category": "personal",
+      "status": "deleted",
+      "createdAt": 1735305600000,
+      "deletedAt": 1735392000000
+    }
+  ],
+  "metadata": {
+    "version": "1.0",
+    "lastUpdated": 1735392000000
+  }
+}

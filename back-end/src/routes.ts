@@ -40,37 +40,35 @@ router.post('/tasks', async (req: Request, res: Response) => {
 // 更新任务
 router.put('/tasks/:id', async (req: Request, res: Response) => {
   try {
-    const taskId = parseInt(req.params.id, 10);
-    const { content, description, category, status } = req.body;
+    const taskId = parseInt(req.params.id!, 10);
     
-    // 验证任务ID
     if (isNaN(taskId)) {
       return res.status(400).json({ error: '无效的任务ID' });
     }
     
-    const existingTasks = await getTasks();
-    const existingTask = existingTasks.find(task => task.id === taskId);
+    const partialUpdate = req.body; 
     
-    if (!existingTask) {
-      return res.status(404).json({ error: '任务不存在' });
-    }
-    
-    const updatedTask: Task = {
-      ...existingTask,
-      content: content !== undefined ? content : existingTask.content,
-      description: description !== undefined ? description : existingTask.description,
-      category: category !== undefined ? category : existingTask.category,
-      status: status !== undefined ? status : existingTask.status
+    const taskToUpdate: Task = {
+      id: taskId,
+      ...partialUpdate,
+      content: partialUpdate.content, 
+      description: partialUpdate.description,
+      category: partialUpdate.category,
+      status: partialUpdate.status,
+      createdAt: 0, 
+      deletedAt: null 
     };
-    
-    const result = await updateTask(updatedTask);
+
+    // 直接调用 updateTask，它内部会处理读取和检查
+    const result = await updateTask(taskToUpdate);
     
     if (result) {
       res.json(result);
     } else {
-      res.status(404).json({ error: '更新任务失败' });
+      res.status(404).json({ error: '任务不存在或已被删除' });
     }
   } catch (error) {
+    console.error(error); // 打印错误日志方便调试
     res.status(500).json({ error: '更新任务失败' });
   }
 });
@@ -78,6 +76,9 @@ router.put('/tasks/:id', async (req: Request, res: Response) => {
 // 删除任务（软删除）
 router.delete('/tasks/:id', async (req: Request, res: Response) => {
   try {
+    if (!req.params.id) {
+      throw Error('无任务ID')
+    }
     const taskId = parseInt(req.params.id, 10);
     
     // 验证任务ID

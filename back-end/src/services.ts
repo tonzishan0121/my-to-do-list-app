@@ -1,11 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import { Task, TasksData } from './types';
-
-// 获取当前文件的目录路径，替代 __dirname
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // 任务文件路径
 const TASKS_FILE_PATH = path.join(__dirname, 'tasks.json');
@@ -63,21 +58,28 @@ export async function addTask(task: Omit<Task, 'id' | 'createdAt' | 'deletedAt'>
 /**
  * 更新任务
  * @param task 要更新的任务（需要包含id）
- * @returns 更新后的任务
+ * @returns 更新后的任务 | null (如果任务不存在或已删除)
  */
 export async function updateTask(task: Task): Promise<Task | null> {
   const tasksData = await readTasksFile();
-  
+
   const index = tasksData.tasks.findIndex(t => t.id === task.id);
+  
+  // 1. 任务不存在
   if (index === -1) {
-    return null; // 任务不存在
+    return null; 
+  }
+
+  // 2. 新增逻辑：禁止修改已软删除的任务
+  if (tasksData.tasks[index]!.status === 'deleted') {
+    return null; // 或者抛出特定错误
   }
   
-  // 保留原始的createdAt和deletedAt，除非更新操作明确需要修改这些
+  // 保留原始的createdAt和deletedAt
   const updatedTask = {
     ...task,
-    createdAt: tasksData.tasks[index].createdAt, // 保留原始创建时间
-    deletedAt: tasksData.tasks[index].deletedAt // 保留删除时间
+    createdAt: tasksData.tasks[index]!.createdAt,
+    deletedAt: null // 修改任务时，通常不需要保留 deletedAt，除非是特殊的“恢复”操作
   };
   
   tasksData.tasks[index] = updatedTask;
@@ -101,9 +103,15 @@ export async function deleteTask(id: number): Promise<boolean> {
     return false; // 任务不存在
   }
   
+  if (!tasksData.tasks) {
+    return false;
+  }
+  if (tasksData.tasks[taskIndex]!.status === 'deleted') {
+    return false; // 任务已删除
+  }
   // 软删除：更新状态和deletedAt时间
-  tasksData.tasks[taskIndex].status = 'deleted';
-  tasksData.tasks[taskIndex].deletedAt = Date.now();
+  tasksData.tasks[taskIndex]!.status = 'deleted';
+  tasksData.tasks[taskIndex]!.deletedAt = Date.now();
   
   tasksData.metadata.lastUpdated = Date.now();
   

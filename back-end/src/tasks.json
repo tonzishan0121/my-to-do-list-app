@@ -26,19 +26,10 @@
       "status": "active",
       "createdAt": 1735219200000,
       "deletedAt": null
-    },
-    {
-      "id": 1735305600000,
-      "content": "这个任务已经软删除了",
-      "description": "测试软删除功能，15天后会自动清除",
-      "category": "personal",
-      "status": "deleted",
-      "createdAt": 1735305600000,
-      "deletedAt": 1735392000000
     }
   ],
   "metadata": {
     "version": "1.0",
-    "lastUpdated": 1735392000000
+    "lastUpdated": 1766763855255
   }
 }

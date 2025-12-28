@@ -128,9 +128,20 @@ const msg: ChatCompletionMessageParam[] = [{
 
 
 export class LLMService {
-    constructor(public tasks: Task[], public chatHistory = msg) {
+    constructor(public chatHistory = msg) { }
+
+    async defaultChat() {
+        const completion = await client.chat.completions.create({
+            model: "deepseek-chat",
+            tools: tools,
+            messages: this.chatHistory
+        });
+        this.chatHistory.push({content:completion.choices[0]?.message, role:"assistant"});
+        return completion.choices[0]?.message
     }
+
     async send(prompt: string) {
+        const res: string[] = [];
         const completion = await client.chat.completions.create({
             model: "deepseek-chat",
             tools: tools,
@@ -139,13 +150,16 @@ export class LLMService {
         if (!completion.choices[0]?.message) {
             return null;
         }
+        res.push(completion.choices[0]?.message);
+        this.chatHistory.push({content:completion.choices[0]?.message, role:"assistant"});
         if (completion.choices[0]?.message.tool_calls) {
             const useToolsRes = await this.useTools(completion);
-            JSON.stringify(useToolsRes);
+            for (let res of useToolsRes) {
+                this.chatHistory.push({ "role": "tool", "tool_call_id": res.id, "content": res.content })
+            }
+            res.push(await this.defaultChat());
         }
-        this.chatHistory.push(completion.choices[0]?.message);
-
-        return completion.choices[0]?.message;
+        return res;
     }
 
     async useTools(completion: ChatCompletion) {
@@ -159,7 +173,7 @@ export class LLMService {
                 case "addTask": {
                     const task = JSON.parse(func.function.arguments) as Omit<Task, 'id' | 'createdAt' | 'deletedAt'>;
                     const res = await addTask(task);
-                    funcsRes.push({ content: `已添加任务：${res.content}, id: ${res.id}`});
+                    funcsRes.push({ content: `已添加任务：${res.content}, id: ${res.id}` });
                     break;
                 }
 
@@ -167,10 +181,10 @@ export class LLMService {
                     const task = JSON.parse(func.function.arguments) as Task;
                     const res = await updateTask(task);
                     if (!res) {
-                        funcsRes.push({ content: `修改任务失败，可能是任务不存在或者已删除，任务id: ${task.id}` });
+                        funcsRes.push({ content: `修改任务失败，可能是任务不存在或者已删除，任务id: ${task.id}`, id: func.id });
                         break;
                     }
-                    funcsRes.push({ content: `已修改任务：${res.content}，任务id: ${task.id}`});
+                    funcsRes.push({ content: `已修改任务：${res.content}，任务id: ${task.id}`, id: func.id });
                     break;
                 }
 
@@ -178,33 +192,25 @@ export class LLMService {
                     const task = JSON.parse(func.function.arguments);
                     const res = await deleteTask(task.id);
                     if (!res) {
-                        funcsRes.push({ content: `删除任务失败，可能是任务不存在或者已删除，任务id: ${task.id}` });
+                        funcsRes.push({ content: `删除任务失败，可能是任务不存在或者已删除，任务id: ${task.id}`, id: func.id });
                         break;
                     }
-                    funcsRes.push({ content: `已删除目标任务，任务id: ${task.id}`});
+                    funcsRes.push({ content: `已删除目标任务，任务id: ${task.id}`, id: func.id });
                     break;
                 }
 
                 case "getTasks": {
                     const res = await getTasks();
-                    funcsRes.push({ content: `已获取所有任务列表`, tasks: res });
+                    funcsRes.push({ content: `已获取所有任务列表`, tasks: res, id: func.id });
                     break;
                 }
 
                 default: {
-                    return [{ content: `调用未知操作：${func.function.name}`}];
+                    return [{ content: `调用未知操作：${func.function.name}`, id: func.id }];
                 }
             }
         }
         return funcsRes;
     }
-}
-async function llmService(prompt: string) {
-    const completion = await client.chat.completions.create({
-        model: "deepseek-chat",
-        tools: tools,
-        messages: [...msg, { role: "user", content: prompt }]
-    });
-    return completion.choices[0]?.message;
 }
 

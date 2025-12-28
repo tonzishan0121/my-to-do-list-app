@@ -27,17 +27,18 @@ wss.on('connection', ws => {
   chatMap.set(ws, []);           // 新会话
   const llmObject = new LLMService();
   ws.on('message', async (data: string) => {
-    const prompt = data.toString();
-    const history = chatMap.get(ws);
-    history.push({ role: 'user', content: prompt });
+    console.log({data, chatMap});
+    // const prompt = data.toString();
+    // const history = chatMap.get(ws);
+    // history.push({ role: 'user', content: prompt });
 
-    const answers = await llmObject.send(prompt);
-    if (answers) {
-      for (const answer of answers) {
-        history.push({ role: 'assistant', content: answer });
-        ws.send(answer);
-      }
-    }
+    // const answers = await llmObject.send(prompt);
+    // if (answers) {
+    //   for (const answer of answers) {
+    //     history.push({ role: 'assistant', content: answer });
+    //     ws.send(answer);
+    //   }
+    // }
   });
 
   ws.on('close', () => chatMap.delete(ws));

@@ -122,6 +122,7 @@ const msg: ChatCompletionMessageParam[] = [{
 1. 意图识别：准确识别用户想要添加、修改、查询还是删除任务。
 2. 参数提取：从用户的口语化表达中提取关键参数。例如：“把周报写完” -> content="把周报写完", category="work"。
 3. 分类映射：自动将用户的模糊词汇映射到标准 category。例如：“买东西” -> shopping，“生活琐事” -> personal，如果用户没有明确指明创建新任务分类，且当前所有类别都无法涵盖新事项的分类，则默认为 default。
+4. 提取主体：要处理好用户的需求，content在表述清楚需要做的事情的前提下尽可能简洁，冗余信息与说明放到description中。
 5. 回复风格：保持简洁、直接。不要说太多客套话，直接确认操作或展示结果。
 
 请随时准备根据用户指令调用相应的工具函数来操作任务列表。`}];
@@ -136,8 +137,11 @@ export class LLMService {
             tools: tools,
             messages: this.chatHistory
         });
-        this.chatHistory.push({content:completion.choices[0]?.message, role:"assistant"});
-        return completion.choices[0]?.message
+        if (!completion.choices[0]?.message) {
+            return null;
+        }
+        this.chatHistory.push(completion.choices[0]?.message);
+        return completion.choices[0]?.message.content
     }
 
     async send(prompt: string) {
@@ -150,14 +154,17 @@ export class LLMService {
         if (!completion.choices[0]?.message) {
             return null;
         }
-        res.push(completion.choices[0]?.message);
-        this.chatHistory.push({content:completion.choices[0]?.message, role:"assistant"});
+        res.push(completion.choices[0]?.message.content!);
+        this.chatHistory.push(completion.choices[0]?.message);
         if (completion.choices[0]?.message.tool_calls) {
             const useToolsRes = await this.useTools(completion);
             for (let res of useToolsRes) {
-                this.chatHistory.push({ "role": "tool", "tool_call_id": res.id, "content": res.content })
+                this.chatHistory.push({ "role": "tool", "tool_call_id": res.id, "content": JSON.stringify(res) })
             }
-            res.push(await this.defaultChat());
+            const defaultRes = await this.defaultChat();
+            if (defaultRes) {
+                res.push(defaultRes);
+            }
         }
         return res;
     }
@@ -173,7 +180,7 @@ export class LLMService {
                 case "addTask": {
                     const task = JSON.parse(func.function.arguments) as Omit<Task, 'id' | 'createdAt' | 'deletedAt'>;
                     const res = await addTask(task);
-                    funcsRes.push({ content: `已添加任务：${res.content}, id: ${res.id}` });
+                    funcsRes.push({ content: `已添加任务：${res.content}, id: ${res.id}`, id: func.id });
                     break;
                 }
 

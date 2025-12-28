@@ -12,11 +12,13 @@
   "description": "",
   "dependencies": {
     "@types/express": "^5.0.6",
+    "@types/ws": "^8.18.1",
     "add": "^2.0.6",
     "cors": "^2.8.5",
     "express": "^5.2.1",
     "openai": "^6.15.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "ws": "^8.18.3"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

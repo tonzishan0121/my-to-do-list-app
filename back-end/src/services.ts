@@ -60,19 +60,19 @@ export async function addTask(task: Omit<Task, 'id' | 'createdAt' | 'deletedAt'>
  * @param task 要更新的任务（需要包含id）
  * @returns 更新后的任务 | null (如果任务不存在或已删除)
  */
-export async function updateTask(task: Task): Promise<Task | null> {
+export async function updateTask(task: Omit<Task, 'createdAt' | 'deletedAt'>): Promise<Task | {content: string}> {
   const tasksData = await readTasksFile();
 
   const index = tasksData.tasks.findIndex(t => t.id === task.id);
   
   // 1. 任务不存在
   if (index === -1) {
-    return null; 
+    return {content: "任务不存在"}; 
   }
 
   // 2. 新增逻辑：禁止修改已软删除的任务
   if (tasksData.tasks[index]!.status === 'deleted') {
-    return null; // 或者抛出特定错误
+    return {content: "任务已删除"}; // 或者抛出特定错误
   }
   
   // 保留原始的createdAt和deletedAt

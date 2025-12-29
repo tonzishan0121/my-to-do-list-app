@@ -118,3 +118,27 @@
 .fade-exit {
   animation: fadeOutUp 0.2s ease-out forwards;
 }
+
+/* 底部弹窗打开按钮 */
+.open-modal-button {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 20px;
+  z-index: 900;
+  background: @accent-color;
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 999px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+@media (max-width: 480px) {
+  .open-modal-button {
+    padding: 10px 14px;
+    bottom: 16px;
+  }
+}

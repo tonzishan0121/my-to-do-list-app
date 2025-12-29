@@ -6,6 +6,7 @@ import TagManager from './components/TagManager';
 import StatsBar from './components/StatsBar';
 import { PlusIcon } from '@radix-ui/react-icons';
 import './App.less';
+import SlideUpModal from './components/SlideUpModal';
 
 const App = () => {
   // 从 localStorage 加载数据
@@ -21,6 +22,7 @@ const App = () => {
   const [data, setData] = useState(loadFromLocalStorage());
   const [filter, setFilter] = useState('全部');
   const [showTagManager, setShowTagManager] = useState(false);
+  const [showBottomModal, setShowBottomModal] = useState(false);
   const tasksEndRef = useRef(null);
 
   // 保存数据到 localStorage
@@ -149,6 +151,29 @@ const App = () => {
           管理标签
         </button>
       </footer>
+
+      {!showBottomModal && (
+        <button
+          className="open-modal-button"
+          onClick={() => setShowBottomModal(true)}
+          aria-label="打开弹窗"
+        >
+          打开弹窗
+        </button>
+      )}
+
+      <SlideUpModal
+        visible={showBottomModal}
+        onClose={() => setShowBottomModal(false)}
+        title="更多操作"
+      >
+        <div>
+          <p>这里是弹窗内容，可以放置设置、快捷操作或更多信息。</p>
+          <div style={{ marginTop: 12 }}>
+            <button className="tag-manager-button" onClick={() => setShowBottomModal(false)}>关闭</button>
+          </div>
+        </div>
+      </SlideUpModal>
 
       {showTagManager && (
         <TagManager 

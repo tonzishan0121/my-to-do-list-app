@@ -25,7 +25,7 @@ const App = () => {
   const [showTagManager, setShowTagManager] = useState(false);
   const [showAIChat, setShowAIChat] = useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
-  const tasksEndRef = useRef(null);
+  const chatStreamRef = useRef(null);
 
   // 保存数据到 localStorage
   useEffect(() => {
@@ -33,10 +33,19 @@ const App = () => {
     localStorage.setItem('tags', JSON.stringify(data.tags));
   }, [data]);
 
+  useEffect(() => {
+    chatStreamRef.current = new WebSocket('ws://localhost:8080');
+    const ws = chatStreamRef.current;
+    ws.onopen = () => console.log(`WS: Connected`);
+    return () => {
+      ws.close();
+      chatStreamRef.current = null;
+    };
+  }, []);
   // 添加任务
   const addTask = (title, description, tag) => {
     if (!title.trim()) return;
-    
+
     const newTask = {
       id: Date.now(),
       title,
@@ -45,7 +54,7 @@ const App = () => {
       completed: false,
       createdAt: new Date().toISOString()
     };
-    
+
     setData(prev => ({
       ...prev,
       tasks: [newTask, ...prev.tasks]
@@ -64,7 +73,7 @@ const App = () => {
   const toggleTask = (id) => {
     setData(prev => ({
       ...prev,
-      tasks: prev.tasks.map(task => 
+      tasks: prev.tasks.map(task =>
         task.id === id ? { ...task, completed: !task.completed } : task
       )
     }));
@@ -83,19 +92,19 @@ const App = () => {
   const deleteTag = (tagToDelete) => {
     // 检查是否有任务使用该标签
     const tasksWithTag = data.tasks.some(task => task.tag === tagToDelete);
-    
+
     if (tasksWithTag) {
       if (!window.confirm(`标签 "${tagToDelete}" 下还有任务，确定要删除吗？`)) {
         return;
       }
-      
+
       // 同时删除使用该标签的任务
       setData(prev => ({
         ...prev,
         tasks: prev.tasks.filter(task => task.tag !== tagToDelete)
       }));
     }
-    
+
     setData(prev => ({
       ...prev,
       tags: prev.tags.filter(tag => tag !== tagToDelete)
@@ -103,8 +112,8 @@ const App = () => {
   };
 
   // 过滤任务
-  const filteredTasks = filter === '全部' 
-    ? data.tasks 
+  const filteredTasks = filter === '全部'
+    ? data.tasks
     : data.tasks.filter(task => task.tag === filter);
 
   // 统计信息
@@ -118,7 +127,7 @@ const App = () => {
 
   // 如果未解锁，显示AI聊天门禁界面
   if (!isUnlocked) {
-    return <AIChatGate onPasswordSuccess={handlePasswordSuccess} />;
+    return <AIChatGate onAddMessage={(msg)=>chatStreamRef.current.send(msg)} onPasswordSuccess={handlePasswordSuccess} />;
   }
 
   return (
@@ -126,8 +135,8 @@ const App = () => {
       <header className="app-header">
         <h1>我的待办</h1>
         <div className="header-input-container">
-          <TaskInput 
-            onAddTask={addTask} 
+          <TaskInput
+            onAddTask={addTask}
             tags={data.tags}
           />
         </div>
@@ -135,36 +144,36 @@ const App = () => {
 
       <main className="app-main">
         <div className="filter-section">
-          <TagFilter 
-            tags={data.tags} 
-            currentFilter={filter} 
+          <TagFilter
+            tags={data.tags}
+            currentFilter={filter}
             onFilterChange={setFilter}
           />
         </div>
-        
-        <TaskList 
-          tasks={filteredTasks} 
-          onDeleteTask={deleteTask} 
+
+        <TaskList
+          tasks={filteredTasks}
+          onDeleteTask={deleteTask}
           onToggleTask={toggleTask}
         />
       </main>
 
       <footer className="app-footer">
-        <StatsBar 
-          total={totalTasks} 
-          completed={completedTasks} 
+        <StatsBar
+          total={totalTasks}
+          completed={completedTasks}
         />
         <div className="footer-actions">
-          <button 
-            className="tag-manager-button" 
+          <button
+            className="tag-manager-button"
             onClick={() => setShowTagManager(true)}
             aria-label="管理标签"
           >
             <PlusIcon className="icon" />
             管理标签
           </button>
-          <button 
-            className="ai-chat-button" 
+          <button
+            className="ai-chat-button"
             onClick={() => setShowAIChat(true)}
             aria-label="智能助手"
           >
@@ -175,16 +184,16 @@ const App = () => {
       </footer>
 
       {showTagManager && (
-        <TagManager 
-          tags={data.tags} 
-          onAddTag={addTag} 
-          onDeleteTag={deleteTag} 
+        <TagManager
+          tags={data.tags}
+          onAddTag={addTag}
+          onDeleteTag={deleteTag}
           onClose={() => setShowTagManager(false)}
         />
       )}
-      
+
       {showAIChat && (
-        <AIChat 
+        <AIChat
           tasks={data.tasks}
           onAddTask={addTask}
           onToggleTask={toggleTask}

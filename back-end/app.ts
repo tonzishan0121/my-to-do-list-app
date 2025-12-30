@@ -1,13 +1,13 @@
-import express from 'express';
+import express, {Application} from 'express';
 import cors from 'cors';
-import routes from './routes';
-import { LLMService } from './llmService';
+import routes from './src/routes';
+import { LLMService } from './src/llmService';
 import { WebSocketServer } from 'ws';
 
-const app = express();
+const app:Application = express();
 const PORT = process.env.PORT || 3000;
 
-const wss = new WebSocketServer({ port: 8080 });
+const wss = new WebSocketServer({ port: 8080 }, () => { console.log('WebSocket运行在端口 8080') });
 const chatMap = new WeakMap();   // ws -> messages[]
 
 // 中间件
@@ -27,18 +27,17 @@ wss.on('connection', ws => {
   chatMap.set(ws, []);           // 新会话
   const llmObject = new LLMService();
   ws.on('message', async (data: string) => {
-    console.log({data, chatMap});
-    // const prompt = data.toString();
-    // const history = chatMap.get(ws);
-    // history.push({ role: 'user', content: prompt });
+    const prompt = data.toString();
+    const history = chatMap.get(ws);
+    history.push({ role: 'user', content: prompt });
 
-    // const answers = await llmObject.send(prompt);
-    // if (answers) {
-    //   for (const answer of answers) {
-    //     history.push({ role: 'assistant', content: answer });
-    //     ws.send(answer);
-    //   }
-    // }
+    const answers = await llmObject.send(prompt);
+    if (answers) {
+      for (const answer of answers) {
+        history.push({ role: 'assistant', content: answer });
+        ws.send(answer);
+      }
+    }
   });
 
   ws.on('close', () => chatMap.delete(ws));

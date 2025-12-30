@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { SendIcon } from 'lucide-react';
 import '../App.less';
 
-const AIChatGate = ({ onPasswordSuccess }) => {
+const AIChatGate = ({ onAddMessage, onPasswordSuccess }) => {
   const [messages, setMessages] = useState([
     { id: 1, text: '你好！我是你的智能助手。请输入暗号来解锁待办事项列表。', isUser: false }
   ]);
@@ -31,6 +31,7 @@ const AIChatGate = ({ onPasswordSuccess }) => {
       text,
       isUser
     };
+    onAddMessage(text);
     setMessages(prev => [...prev, newMessage]);
   };
 

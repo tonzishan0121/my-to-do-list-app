@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { getTasks, addTask, updateTask, deleteTask } from './services';
 import { Task } from './types';
 
-const router = Router();
+const router:Router = Router();
 
 // 获取任务列表
 router.get('/tasks', async (_req: Request, res: Response) => {

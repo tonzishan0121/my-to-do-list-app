@@ -10,6 +10,7 @@
 @border-color: #e0e0e0;
 @tag-bg: #e6f0fa;
 @tag-text: #4a90e2;
+@time-text: #888888;
 
 .task-item {
   display: flex;
@@ -40,6 +41,11 @@
     }
     
     .task-description {
+      text-decoration: line-through;
+      color: @completed-text;
+    }
+    
+    .task-time {
       text-decoration: line-through;
       color: @completed-text;
     }
@@ -109,6 +115,12 @@
   margin-bottom: 8px;
 }
 
+.task-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .task-tag {
   display: inline-block;
   background-color: @tag-bg;
@@ -116,6 +128,12 @@
   font-size: 12px;
   padding: 4px 8px;
   border-radius: 4px;
+}
+
+.task-time {
+  font-size: 12px;
+  color: @time-text;
+  white-space: nowrap;
 }
 
 .delete-button {

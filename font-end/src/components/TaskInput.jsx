@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { PlusIcon, ChevronDownIcon } from '@radix-ui/react-icons';
 import * as Select from '@radix-ui/react-select';
 import './TaskInput.less';
@@ -9,17 +9,6 @@ const TaskInput = ({ onAddTask, tags }) => {
   const [showDescription, setShowDescription] = useState(false);
   const [selectedTag, setSelectedTag] = useState(tags[0] || '');
   const inputRef = useRef(null);
-
-  // 当 tags 更新时，确保 selectedTag 与之同步（避免删除当前选中标签造成不一致）
-  useEffect(() => {
-    if (tags && tags.length) {
-      if (!tags.includes(selectedTag)) {
-        setSelectedTag(tags[0]);
-      }
-    } else {
-      setSelectedTag('');
-    }
-  }, [tags]);
 
   const handleSubmit = (e) => {
     e.preventDefault();

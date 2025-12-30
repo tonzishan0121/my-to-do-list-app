@@ -1,144 +1,246 @@
-@import (reference) '../node_modules/@radix-ui/colors/gray.css';
-@import (reference) '../node_modules/@radix-ui/colors/blue.css';
-
-/* 调色板 */
-@base-color: #ffffff;
-@surface-color: #f9f9f9;
-@primary-text: #1a1a1a;
-@accent-color: #4a90e2;
-@completed-text: #999999;
-@border-color: #e0e0e0;
-@overlay-color: rgba(255, 255, 255, 0.8);
-@tag-bg: #e6f0fa;
-@tag-text: #4a90e2;
-@stats-text: #888888;
-@placeholder-text: #bbbbbb;
-
-/* 排版 */
-@heading-font: 'Inter', 'Helvetica Neue', sans-serif;
-@body-font: 'Inter', 'Helvetica Neue', sans-serif;
-
+/* 全局样式 */
 .app {
-  min-height: 100vh;
-  background-color: @base-color;
-  display: flex;
-  flex-direction: column;
-  font-family: @body-font;
-  color: @primary-text;
-  padding: 0 16px;
   max-width: 800px;
   margin: 0 auto;
+  padding: 20px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   box-sizing: border-box;
 }
 
+/* 头部样式 */
 .app-header {
-  padding: 24px 0;
-  
-  h1 {
-    font-family: @heading-font;
-    font-weight: 700;
-    font-size: 24px;
-    margin: 0 0 16px 0;
-    color: @primary-text;
-  }
-}
-
-.header-actions {
   margin-bottom: 24px;
 }
 
+.app-header h1 {
+  text-align: center;
+  margin: 0 0 20px 0;
+  font-size: 28px;
+  font-weight: 600;
+  color: #333;
+}
+
+.header-input-container {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* 主体内容样式 */
 .app-main {
   flex: 1;
-  margin-bottom: 24px;
 }
 
+/* 筛选区域样式 */
 .filter-section {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
+/* 底部样式 */
 .app-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 0;
-  border-top: 1px solid @border-color;
-  margin-top: auto;
+  margin-top: 24px;
 }
 
+/* 标签管理器按钮样式 */
 .tag-manager-button {
   display: flex;
   align-items: center;
-  gap: 6px;
-  background: none;
-  border: 1px solid @accent-color;
-  color: @accent-color;
-  border-radius: 4px;
-  padding: 8px 12px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  
-  &:hover {
-    background-color: @tag-bg;
-  }
-  
-  .icon {
-    width: 16px;
-    height: 16px;
-  }
-}
-
-/* 动画 */
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeOutUp {
-  from {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-}
-
-.fade-enter {
-  animation: fadeInDown 0.2s ease-out forwards;
-}
-
-.fade-exit {
-  animation: fadeOutUp 0.2s ease-out forwards;
-}
-
-/* 底部弹窗打开按钮 */
-.open-modal-button {
-  position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: 20px;
-  z-index: 900;
-  background: @accent-color;
-  color: #fff;
-  border: none;
+  justify-content: center;
+  gap: 8px;
   padding: 10px 16px;
-  border-radius: 999px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
-  cursor: pointer;
+  background: #f0f0f0;
+  border: none;
+  border-radius: 8px;
   font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  margin-bottom: 12px;
 }
 
-@media (max-width: 480px) {
-  .open-modal-button {
-    padding: 10px 14px;
-    bottom: 16px;
+.tag-manager-button:hover {
+  background: #e0e0e0;
+}
+
+.tag-manager-button .icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* AI聊天按钮样式 */
+.ai-chat-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.ai-chat-button:hover {
+  background: #4338ca;
+}
+
+.ai-chat-button .icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* 底部操作区域样式 */
+.footer-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+/* 响应式设计 */
+@media (min-width: 640px) {
+  .footer-actions {
+    flex-direction: row;
   }
+  
+  .tag-manager-button,
+  .ai-chat-button {
+    width: auto;
+    flex: 1;
+  }
+}
+
+/* AI聊天门禁界面样式 */
+.ai-chat-gate {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.ai-chat-gate-content {
+  width: 100%;
+  max-width: 600px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  height: 80vh;
+}
+
+.ai-chat-gate-header {
+  padding: 24px;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+}
+
+.ai-chat-gate-header h2 {
+  margin: 0 0 8px 0;
+  color: #333;
+  font-size: 24px;
+}
+
+.ai-chat-gate-header p {
+  margin: 0;
+  color: #666;
+  font-size: 16px;
+}
+
+.ai-chat-messages {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ai-chat-message {
+  display: flex;
+  max-width: 80%;
+}
+
+.ai-chat-message.ai {
+  align-self: flex-start;
+}
+
+.ai-chat-message.user {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.ai-chat-message-content {
+  padding: 12px 16px;
+  border-radius: 18px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.ai-chat-message.ai .ai-chat-message-content {
+  background: #f1f5f9;
+  color: #333;
+  border-bottom-left-radius: 4px;
+}
+
+.ai-chat-message.user .ai-chat-message-content {
+  background: #4f46e5;
+  color: white;
+  border-bottom-right-radius: 4px;
+}
+
+.ai-chat-input-form {
+  padding: 20px;
+  border-top: 1px solid #eee;
+}
+
+.ai-chat-input-container {
+  display: flex;
+  gap: 12px;
+}
+
+.ai-chat-input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid #ddd;
+  border-radius: 24px;
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.ai-chat-input:focus {
+  border-color: #4f46e5;
+}
+
+.ai-chat-send-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.ai-chat-send-button:hover:not(:disabled) {
+  background: #4338ca;
+}
+
+.ai-chat-send-button:disabled {
+  background: #c7d2fe;
+  cursor: not-allowed;
 }

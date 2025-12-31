@@ -37,6 +37,7 @@ const App = () => {
     chatStreamRef.current = new WebSocket('ws://localhost:8080');
     const ws = chatStreamRef.current;
     ws.onopen = () => console.log(`WS: Connected`);
+    ws.onClosed = () => console.log(`WS: Disconnected`);
     return () => {
       ws.close();
       chatStreamRef.current = null;
@@ -125,9 +126,13 @@ const App = () => {
     setIsUnlocked(true);
   };
 
+  const onAddMessage =  async (message, callback) => {
+    chatStreamRef.current.send(message);
+    chatStreamRef.current.onmessage = (event) => callback(event.data);
+  }; 
   // 如果未解锁，显示AI聊天门禁界面
   if (!isUnlocked) {
-    return <AIChatGate onAddMessage={(msg)=>chatStreamRef.current.send(msg)} onPasswordSuccess={handlePasswordSuccess} />;
+    return <AIChatGate onAddMessage={onAddMessage} onPasswordSuccess={handlePasswordSuccess} />;
   }
 
   return (

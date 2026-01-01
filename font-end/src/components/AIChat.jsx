@@ -64,7 +64,7 @@ const AIChat = ({ onAddMessage, onClose }) => {
             <h2>智能任务助手</h2>
           </div>
           <button className="close-button" onClick={onClose} aria-label="关闭聊天">
-            <Cross2Icon />
+            <Cross2Icon width={20} height={20}/>
           </button>
         </div>
 

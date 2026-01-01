@@ -4,25 +4,25 @@
       "id": 1735046400000,
       "content": "学习 React 源码 - React Fiber 架构",
       "description": "阅读 React 18 的 Fiber 架构文档，理解时间切片原理",
-      "category": "personal",
-      "status": "active",
+      "category": "学习",
+      "status": "deleted",
       "createdAt": 1735046400000,
-      "deletedAt": null
+      "deletedAt": 1767289396954
     },
     {
       "id": 1735132800000,
       "content": "准备项目周报",
       "description": "整理本周开发进度，汇总遇到的技术问题",
-      "category": "work",
-      "status": "completed",
+      "category": "工作",
+      "status": "deleted",
       "createdAt": 1735132800000,
-      "deletedAt": null
+      "deletedAt": 1767289393836
     },
     {
       "id": 1735219200000,
       "content": "买牛奶和面包",
       "description": "周末早餐采购",
-      "category": "shopping",
+      "category": "购物",
       "status": "active",
       "createdAt": 1735219200000,
       "deletedAt": null
@@ -30,6 +30,6 @@
   ],
   "metadata": {
     "version": "1.0",
-    "lastUpdated": 1767080399961
+    "lastUpdated": 1767289493846
   }
 }

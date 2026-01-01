@@ -15,6 +15,7 @@ async function testLLM() {
   while (msg = await line()) {
     console.log(await llm.send(msg));
   }
+  console.log(llm.chatHistory);
 }
 
 async function testGetTasks() {

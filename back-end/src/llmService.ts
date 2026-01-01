@@ -42,7 +42,7 @@ const tools: ChatCompletionTool[] = [
                     },
                     category: {
                         type: "string",
-                        description: "任务分类，可选值：work (工作), personal (个人), shopping (购物), default (默认)。用户也可自己增加自定义的新任务分类，如果用户未指定且无法归到已有类中，默认为 default。",
+                        description: "任务分类，可选值：工作,个人,购物,其他。用户也可自己增加自定义的新任务分类，如果用户未指定且无法归类到已有类中，默认为其他。",
                     },
                     status: {
                         type: "string",
@@ -70,7 +70,7 @@ const tools: ChatCompletionTool[] = [
                     },
                     category: {
                         type: "string",
-                        description: "任务分类，可选值：work (工作), personal (个人), shopping (购物), default (默认)。用户也可自己增加自定义的新任务分类，如果用户未指定且无法归到已有类中，默认为 default。",
+                        description: "任务分类，可选值：工作,个人,购物,其他。用户也可自己增加自定义的新任务分类，如果用户未指定且无法归到已有类中，默认为其他。",
                     },
                     status: {
                         type: "string",
@@ -107,7 +107,7 @@ const msg: ChatCompletionMessageParam[] = [{
 - id: 任务的唯一标识（时间戳整数）
 - content: 任务标题（必填）
 - description: 任务详细描述（选填）
-- category: 任务分类，可选值：work (工作), personal (个人), shopping (购物), default (默认)。用户也可自己增加自定义的新任务分类，如果用户未指定，默认为 default。
+- category: 任务分类，可选值：工作,个人,购物,其他。用户也可自己增加自定义的新任务分类，如果用户未指定，默认为其他。
 - status: 任务状态，可选值仅限：active (进行中), completed (已完成), deleted (已删除)。
 - createdAt: 任务创建时间（时间戳整数）
 - deletedAt: 任务删除时间（时间戳整数），如果任务未删除，则为 null，采用的是软删除，执行删除操作时会记录删除时间，如果当前时间-任务创建时间 > 15天，则任务会被永久删除。
@@ -121,8 +121,8 @@ const msg: ChatCompletionMessageParam[] = [{
 
 **交互规则：**
 1. 意图识别：准确识别用户想要添加、修改、查询还是删除任务。
-2. 参数提取：从用户的口语化表达中提取关键参数。例如：“把周报写完” -> content="把周报写完", category="work"。
-3. 分类映射：自动将用户的模糊词汇映射到标准 category。例如：“买东西” -> shopping，“生活琐事” -> personal，如果用户没有明确指明创建新任务分类，且当前所有类别都无法涵盖新事项的分类，则默认为 default。
+2. 参数提取：从用户的口语化表达中提取关键参数。例如：“把周报写完” -> content="把周报写完", category="工作"。
+3. 分类映射：自动将用户的模糊词汇映射到标准 category。例如：“买东西” -> 购物，“生活琐事” -> 个人，如果用户没有明确指明创建新任务分类，且当前所有类别都无法涵盖新事项的分类，则默认为其他。
 4. 提取主体：要处理好用户的需求，content在表述清楚需要做的事情的前提下尽可能简洁，冗余信息与说明放到description中。
 5. 回复风格：保持简洁、直接。不要说太多客套话，直接确认操作或展示结果。
 
@@ -147,10 +147,11 @@ export class LLMService {
 
     async send(prompt: string) {
         const res: string[] = [];
+        this.chatHistory.push({ role: "user", content: prompt });
         const completion = await client.chat.completions.create({
             model: "deepseek-chat",
             tools: tools,
-            messages: [...this.chatHistory, { role: "user", content: prompt }]
+            messages: this.chatHistory, 
         });
         if (!completion.choices[0]?.message) {
             return null;

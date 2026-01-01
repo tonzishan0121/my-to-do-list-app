@@ -9,164 +9,137 @@ import AIChatGate from './components/AIChatGate';
 import { PlusIcon, ChatBubbleIcon } from '@radix-ui/react-icons';
 import './App.less';
 
-const tasksFunc = () => {
-  const apiHost = 'http://localhost:3000/api';
-  return {
-    getTasks: async () => {
-      const response = await fetch(apiHost + '/tasks');
-      const data = await response.json();
-      return data;
-    },
-    addTask: async (title, description, tag) => {
-      if (!title.trim()) return;
-
-      const newTask = {
-        id: Date.now(),
-        title,
-        description,
-        tag,
-        completed: false,
-        createdAt: new Date().toISOString()
-      };
-      const resp = await fetch(apiHost + '/tasks', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: { content: newTask.title, description: newTask.description, category: tag }
-      });
-      if (!resp.ok) return;
-      setData(prev => ({
-        ...prev,
-        tasks: [newTask, ...prev.tasks]
-      }));
-      console.log(resp);
-    },
-    deleteTask: async (taskId) => {
-      const resp = await fetch(apiHost + '/tasks/' + taskId, {
-        method: 'DELETE'
-      });
-      if (!resp.ok) return;
-      setData(prev => ({
-        ...prev,
-        tasks: prev.tasks.filter(task => task.id !== taskId)
-      }));
-      console.log(resp);
-    },
-    updateTask: async (taskId, updatedTask) => {
-      const resp = await fetch(apiHost + '/tasks/' + taskId, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: {
-          content: updatedTask.title,
-          description: updatedTask.description,
-          category: updatedTask.tag,
-          status: updatedTask.status
-        }
-      });
-      if (!resp.ok) return;
-      setData(prev => ({
-        ...prev,
-        tasks: prev.tasks.map(task =>
-          task.id === taskId ? updatedTask : task
-        )
-      }));
-      console.log(resp);
-    },
-  }
-}
-
 const App = () => {
-  // 从 localStorage 加载数据
-  const loadFromLocalStorage = () => {
-    const savedTasks = localStorage.getItem('tasks');
+  // 从 localStorage 加载标签数据
+  const loadTagsFromLocalStorage = () => {
     const savedTags = localStorage.getItem('tags');
-    return {
-      tasks: savedTasks ? JSON.parse(savedTasks) : [],
-      tags: savedTags ? JSON.parse(savedTags) : ['工作', '个人', '购物']
-    }
+    return savedTags ? JSON.parse(savedTags) : ['工作', '个人', '购物'];
   };
 
-  const [data, setData] = useState(loadFromLocalStorage());
+  const [tasks, setTasks] = useState([]);
+  const [tags, setTags] = useState(loadTagsFromLocalStorage());
   const [filter, setFilter] = useState('全部');
   const [showTagManager, setShowTagManager] = useState(false);
   const [showAIChat, setShowAIChat] = useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
   const chatStreamRef = useRef(null);
+  const shouldFetchTasksRef = useRef(true);
+  
+  const tasksFunc = () => {
+    const apiHost = 'http://localhost:3000/api';
+    return {
+      getTasks: async () => {
+        const response = await fetch(apiHost + '/tasks');
+        const data = await response.json();
+        return data.tasks || [];
+      },
+      addTask: async (title, description, tag) => {
+        if (!title.trim()) return;
 
-  // 保存数据到 localStorage
+        const newTask = {
+          id: Date.now(),
+          content: title,
+          description,
+          category: tag,
+          status: 'active',
+          createdAt: Date.now(),
+          deletedAt: null
+        };
+        const resp = await fetch(apiHost + '/tasks', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ content: newTask.content, description: newTask.description, category: tag })
+        });
+        if (!resp.ok) {
+          return
+        } 
+        shouldFetchTasksRef.current = true;
+      },
+      deleteTask: async (taskId) => {
+        const resp = await fetch(apiHost + '/tasks/' + taskId, {
+          method: 'DELETE'
+        });
+        if (!resp.ok) return;
+        shouldFetchTasksRef.current = true;
+      },
+      updateTask: async (taskId, updatedTask) => {
+        const resp = await fetch(apiHost + '/tasks/' + taskId, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            content: updatedTask.content,
+            description: updatedTask.description,
+            category: updatedTask.category,
+            status: updatedTask.status
+          })
+        });
+        if (!resp.ok) return;
+        shouldFetchTasksRef.current = true;
+      },
+    }
+  }
+
+  // 仅保存标签到 localStorage
   useEffect(() => {
-    localStorage.setItem('tasks', JSON.stringify(data.tasks));
-    localStorage.setItem('tags', JSON.stringify(data.tags));
-  }, [data]);
+    localStorage.setItem('tags', JSON.stringify(tags));
+  }, [tags]);
 
   useEffect(() => {
+    const fetchTasks = async () => {
+      if (shouldFetchTasksRef.current) {
+        const fetchedTasks = await tasksFunc().getTasks();
+        setTasks(fetchedTasks);
+        shouldFetchTasksRef.current = false;
+      }
+    };
+
+    fetchTasks();
+
     chatStreamRef.current = new WebSocket('ws://localhost:8080');
     const ws = chatStreamRef.current;
     ws.onopen = () => console.log(`WS: Connected`);
-    ws.onClosed = () => console.log(`WS: Disconnected`);
+    ws.onclose = () => console.log(`WS: Disconnected`);
     return () => {
       ws.close();
       chatStreamRef.current = null;
     };
   }, []);
-  // 添加任务
-  const addTask = (title, description, tag) => {
-    if (!title.trim()) return;
 
-    const newTask = {
-      id: Date.now(),
-      title,
-      description,
-      tag,
-      completed: false,
-      createdAt: new Date().toISOString()
+  useEffect(() => {
+    const fetchTasks = async () => {
+      if (shouldFetchTasksRef.current) {
+        const fetchedTasks = await tasksFunc().getTasks();
+        setTasks(fetchedTasks);
+        shouldFetchTasksRef.current = false;
+      }
     };
 
-    setData(prev => ({
-      ...prev,
-      tasks: [newTask, ...prev.tasks]
-    }));
-  };
-
-  // 删除任务
-  const deleteTask = (id) => {
-    setData(prev => ({
-      ...prev,
-      tasks: prev.tasks.filter(task => task.id !== id)
-    }));
-  };
+    fetchTasks();
+  });
 
   // 切换任务完成状态
-  const toggleTask = async (id) => {
+  const toggleTask = async (id, task) => {
     if (task.status === 'completed') {
-      tasksFunc().updateTask(id, { status: 'active' });
+      await tasksFunc().updateTask(task.id, { ...task, status: 'active' });
     } else {
-      tasksFunc().updateTask(id, { status: 'completed' });
+      await tasksFunc().updateTask(task.id, { ...task, status: 'completed' });
     }
-    setData(prev => ({
-      ...prev,
-      tasks: prev.tasks.map(task =>
-        task.id === id ? { ...task, completed: !task.completed } : task
-      )
-    }));
   };
 
   // 添加标签
   const addTag = (tag) => {
-    if (!tag.trim() || data.tags.includes(tag)) return;
-    setData(prev => ({
-      ...prev,
-      tags: [...prev.tags, tag]
-    }));
+    if (!tag.trim() || tags.includes(tag)) return;
+    setTags(prev => [...prev, tag]);
   };
 
   // 删除标签
   const deleteTag = (tagToDelete) => {
     // 检查是否有任务使用该标签
-    const tasksWithTag = data.tasks.some(task => task.tag === tagToDelete);
+    const tasksWithTag = tasks.some(task => task.category === tagToDelete);
 
     if (tasksWithTag) {
       if (!window.confirm(`标签 "${tagToDelete}" 下还有任务，确定要删除吗？`)) {
@@ -174,26 +147,20 @@ const App = () => {
       }
 
       // 同时删除使用该标签的任务
-      setData(prev => ({
-        ...prev,
-        tasks: prev.tasks.filter(task => task.tag !== tagToDelete)
-      }));
+      setTasks(prev => prev.filter(task => task.category !== tagToDelete));
     }
 
-    setData(prev => ({
-      ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToDelete)
-    }));
+    setTags(prev => prev.filter(tag => tag !== tagToDelete));
   };
 
   // 过滤任务
   const filteredTasks = filter === '全部'
-    ? data.tasks
-    : data.tasks.filter(task => task.tag === filter);
+    ? tasks
+    : tasks.filter(task => task.category === filter);
 
   // 统计信息
-  const totalTasks = data.tasks.length;
-  const completedTasks = data.tasks.filter(task => task.completed).length;
+  const totalTasks = tasks.length;
+  const completedTasks = tasks.filter(task => task.status === 'completed').length;
 
   // 处理密码验证成功
   const handlePasswordSuccess = () => {
@@ -211,7 +178,6 @@ const App = () => {
   };
   // 如果未解锁，显示AI聊天门禁界面
   if (!isUnlocked) {
-    chatStreamRef.current?.onmessage = null;
     return <AIChatGate onAddMessage={onAddMessage} onPasswordSuccess={handlePasswordSuccess} />;
   }
 
@@ -221,8 +187,8 @@ const App = () => {
         <h1>我的待办</h1>
         <div className="header-input-container">
           <TaskInput
-            onAddTask={addTask}
-            tags={data.tags}
+            onAddTask={tasksFunc().addTask}
+            tags={tags}
           />
         </div>
       </header>
@@ -230,7 +196,7 @@ const App = () => {
       <main className="app-main">
         <div className="filter-section">
           <TagFilter
-            tags={data.tags}
+            tags={tags}
             currentFilter={filter}
             onFilterChange={setFilter}
           />
@@ -238,7 +204,7 @@ const App = () => {
 
         <TaskList
           tasks={filteredTasks}
-          onDeleteTask={deleteTask}
+          onDeleteTask={tasksFunc().deleteTask}
           onToggleTask={toggleTask}
         />
       </main>
@@ -270,7 +236,7 @@ const App = () => {
 
       {showTagManager && (
         <TagManager
-          tags={data.tags}
+          tags={tags}
           onAddTag={addTag}
           onDeleteTag={deleteTag}
           onClose={() => setShowTagManager(false)}

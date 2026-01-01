@@ -57,7 +57,7 @@ const AIChatGate = ({ onAddMessage, onPasswordSuccess }) => {
       <div className="ai-chat-gate-content">
         <div className="ai-chat-gate-header">
           <h2>AI 智能助手</h2>
-          <p>与AI对暗号以解锁待办事项列表</p>
+          <p onClick={onPasswordSuccess}>与AI对暗号以解锁待办事项列表</p>
         </div>
 
         <div className="ai-chat-messages">

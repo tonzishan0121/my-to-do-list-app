@@ -12,7 +12,7 @@ const TaskItem = ({ task, isSelected, onSelect, onDeselect, onDelete, onToggle }
   };
   
   const handleToggle = () => {
-    onToggle(task.id);
+    onToggle(task.id, task);
   };
   
   const handleSelect = () => {
@@ -28,8 +28,6 @@ const TaskItem = ({ task, isSelected, onSelect, onDeselect, onDelete, onToggle }
   };
   
   const handleSave = () => {
-    // 在实际应用中，这里应该调用更新任务的函数
-    // 为简化起见，我们只切换编辑状态
     setIsEditing(false);
   };
   

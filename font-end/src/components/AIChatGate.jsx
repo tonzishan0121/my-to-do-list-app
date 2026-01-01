@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { SendIcon } from 'lucide-react';
 import '../App.less';
 
@@ -21,6 +21,12 @@ const AIChatGate = ({ onAddMessage, onPasswordSuccess }) => {
     }
   }, [messages]);
 
+  const messageCallback = useCallback(msg => {
+    addMessage(msg, false);
+    if (msg.includes(CORRECT_PASSWORD)) {
+      onPasswordSuccess();
+    }
+  }, []);
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -41,12 +47,7 @@ const AIChatGate = ({ onAddMessage, onPasswordSuccess }) => {
     setIsChecking(true);
     const userMessage = inputValue.trim();
     addMessage(userMessage, true);
-    onAddMessage(userMessage, msg => {
-      addMessage(msg, false);
-      if (userMessage === CORRECT_PASSWORD) {
-        onPasswordSuccess();
-      }
-    });
+    onAddMessage(userMessage, messageCallback);
     setInputValue('');
     setIsChecking(false);
   };

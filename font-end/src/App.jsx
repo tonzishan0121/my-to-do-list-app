@@ -9,6 +9,75 @@ import AIChatGate from './components/AIChatGate';
 import { PlusIcon, ChatBubbleIcon } from '@radix-ui/react-icons';
 import './App.less';
 
+const tasksFunc = () => {
+  const apiHost = 'http://localhost:3000/api';
+  return {
+    getTasks: async () => {
+      const response = await fetch(apiHost + '/tasks');
+      const data = await response.json();
+      return data;
+    },
+    addTask: async (title, description, tag) => {
+      if (!title.trim()) return;
+
+      const newTask = {
+        id: Date.now(),
+        title,
+        description,
+        tag,
+        completed: false,
+        createdAt: new Date().toISOString()
+      };
+      const resp = await fetch(apiHost + '/tasks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: { content: newTask.title, description: newTask.description, category: tag }
+      });
+      if (!resp.ok) return;
+      setData(prev => ({
+        ...prev,
+        tasks: [newTask, ...prev.tasks]
+      }));
+      console.log(resp);
+    },
+    deleteTask: async (taskId) => {
+      const resp = await fetch(apiHost + '/tasks/' + taskId, {
+        method: 'DELETE'
+      });
+      if (!resp.ok) return;
+      setData(prev => ({
+        ...prev,
+        tasks: prev.tasks.filter(task => task.id !== taskId)
+      }));
+      console.log(resp);
+    },
+    updateTask: async (taskId, updatedTask) => {
+      const resp = await fetch(apiHost + '/tasks/' + taskId, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: {
+          content: updatedTask.title,
+          description: updatedTask.description,
+          category: updatedTask.tag,
+          status: updatedTask.status
+        }
+      });
+      if (!resp.ok) return;
+      setData(prev => ({
+        ...prev,
+        tasks: prev.tasks.map(task =>
+          task.id === taskId ? updatedTask : task
+        )
+      }));
+      console.log(resp);
+    },
+  }
+}
+
 const App = () => {
   // 从 localStorage 加载数据
   const loadFromLocalStorage = () => {
@@ -71,7 +140,12 @@ const App = () => {
   };
 
   // 切换任务完成状态
-  const toggleTask = (id) => {
+  const toggleTask = async (id) => {
+    if (task.status === 'completed') {
+      tasksFunc().updateTask(id, { status: 'active' });
+    } else {
+      tasksFunc().updateTask(id, { status: 'completed' });
+    }
     setData(prev => ({
       ...prev,
       tasks: prev.tasks.map(task =>
@@ -126,12 +200,18 @@ const App = () => {
     setIsUnlocked(true);
   };
 
-  const onAddMessage =  async (message, callback) => {
+  /**
+   * 发送消息，并用回调处理返回的消息
+   * @param {string} message 
+   * @param {(param:string)=>void} callback 
+   */
+  const onAddMessage = async (message, callback) => {
     chatStreamRef.current.send(message);
     chatStreamRef.current.onmessage = (event) => callback(event.data);
-  }; 
+  };
   // 如果未解锁，显示AI聊天门禁界面
   if (!isUnlocked) {
+    chatStreamRef.current?.onmessage = null;
     return <AIChatGate onAddMessage={onAddMessage} onPasswordSuccess={handlePasswordSuccess} />;
   }
 
@@ -199,10 +279,7 @@ const App = () => {
 
       {showAIChat && (
         <AIChat
-          tasks={data.tasks}
-          onAddTask={addTask}
-          onToggleTask={toggleTask}
-          onDeleteTask={deleteTask}
+          onAddMessage={onAddMessage}
           onClose={() => setShowAIChat(false)}
         />
       )}

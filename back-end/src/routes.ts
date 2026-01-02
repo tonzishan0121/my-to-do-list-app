@@ -50,13 +50,7 @@ router.put('/tasks/:id', async (req: Request, res: Response) => {
     
     const taskToUpdate: Task = {
       id: taskId,
-      ...partialUpdate,
-      content: partialUpdate.content, 
-      description: partialUpdate.description,
-      category: partialUpdate.category,
-      status: partialUpdate.status,
-      createdAt: 0, 
-      deletedAt: null 
+      ...partialUpdate
     };
 
     // 直接调用 updateTask，它内部会处理读取和检查

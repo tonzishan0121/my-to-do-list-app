@@ -6,7 +6,7 @@ const AIChat = ({ onAddMessage, onClose }) => {
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: '你好！我是你的智能任务助手，可以帮助你管理待办事项。你可以让我帮你添加、完成或删除任务，或者询问任务相关的问题。',
+      text: '恭喜答对！芝麻开门~\n\n我是缇宝~现在我可以帮你管理待办事项了！有什么需要我帮忙的吗？',
       sender: 'ai',
       timestamp: new Date()
     }
@@ -61,7 +61,7 @@ const AIChat = ({ onAddMessage, onClose }) => {
         <div className="ai-chat-header">
           <div className="header-content">
             <MagicWandIcon className="header-icon" />
-            <h2>智能任务助手</h2>
+            <h2>缇宝任务助手</h2>
           </div>
           <button className="close-button" onClick={onClose} aria-label="关闭聊天">
             <Cross2Icon width={20} height={20}/>

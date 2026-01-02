@@ -9,7 +9,6 @@ const TaskInput = ({ onAddTask, tags }) => {
   const [showDescription, setShowDescription] = useState(false);
   const [selectedTag, setSelectedTag] = useState(tags[0] || '');
   const inputRef = useRef(null);
-
   const handleSubmit = (e) => {
     e.preventDefault();
     if (title.trim()) {

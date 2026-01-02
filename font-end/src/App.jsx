@@ -10,59 +10,54 @@ import { PlusIcon, ChatBubbleIcon } from '@radix-ui/react-icons';
 import './App.less';
 
 const App = () => {
-  // 从 localStorage 加载标签数据
-  const loadTagsFromLocalStorage = () => {
+  // 从 localStorage 加载数据
+  const loadFromLocalStorage = () => {
     const savedTags = localStorage.getItem('tags');
-    return savedTags ? JSON.parse(savedTags) : ['工作', '个人', '购物'];
+    return savedTags ? JSON.parse(savedTags) : ['工作', '个人', '购物']
   };
-
   const [tasks, setTasks] = useState([]);
-  const [tags, setTags] = useState(loadTagsFromLocalStorage());
+  const [tags, setTags] = useState(loadFromLocalStorage());
   const [filter, setFilter] = useState('全部');
   const [showTagManager, setShowTagManager] = useState(false);
   const [showAIChat, setShowAIChat] = useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
   const chatStreamRef = useRef(null);
-  const shouldFetchTasksRef = useRef(true);
-  
+  const [refresh, setRefresh] = useState(0);
   const tasksFunc = () => {
     const apiHost = 'http://localhost:3000/api';
     return {
       getTasks: async () => {
         const response = await fetch(apiHost + '/tasks');
         const data = await response.json();
-        return data.tasks || [];
+        return data;
       },
       addTask: async (title, description, tag) => {
         if (!title.trim()) return;
 
         const newTask = {
           id: Date.now(),
-          content: title,
+          title,
           description,
-          category: tag,
-          status: 'active',
-          createdAt: Date.now(),
-          deletedAt: null
+          tag,
+          completed: false,
+          createdAt: new Date().toISOString()
         };
         const resp = await fetch(apiHost + '/tasks', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ content: newTask.content, description: newTask.description, category: tag })
+          body: JSON.stringify({ content: newTask.title, description: newTask.description, category: tag })
         });
-        if (!resp.ok) {
-          return
-        } 
-        shouldFetchTasksRef.current = true;
+        if (!resp.ok) return;
+        setRefresh(before=>before+1);
       },
       deleteTask: async (taskId) => {
         const resp = await fetch(apiHost + '/tasks/' + taskId, {
           method: 'DELETE'
         });
         if (!resp.ok) return;
-        shouldFetchTasksRef.current = true;
+        setRefresh(before=>before+1);
       },
       updateTask: async (taskId, updatedTask) => {
         const resp = await fetch(apiHost + '/tasks/' + taskId, {
@@ -70,39 +65,24 @@ const App = () => {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({
-            content: updatedTask.content,
-            description: updatedTask.description,
-            category: updatedTask.category,
-            status: updatedTask.status
-          })
+          body: JSON.stringify(updatedTask)
         });
         if (!resp.ok) return;
-        shouldFetchTasksRef.current = true;
+        setRefresh(before=>before+1);
       },
     }
   }
 
-  // 仅保存标签到 localStorage
+  // 保存数据到 localStorage
   useEffect(() => {
     localStorage.setItem('tags', JSON.stringify(tags));
   }, [tags]);
 
   useEffect(() => {
-    const fetchTasks = async () => {
-      if (shouldFetchTasksRef.current) {
-        const fetchedTasks = await tasksFunc().getTasks();
-        setTasks(fetchedTasks);
-        shouldFetchTasksRef.current = false;
-      }
-    };
-
-    fetchTasks();
-
     chatStreamRef.current = new WebSocket('ws://localhost:8080');
     const ws = chatStreamRef.current;
     ws.onopen = () => console.log(`WS: Connected`);
-    ws.onclose = () => console.log(`WS: Disconnected`);
+    ws.onClosed = () => console.log(`WS: Disconnected`);
     return () => {
       ws.close();
       chatStreamRef.current = null;
@@ -110,36 +90,33 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    const fetchTasks = async () => {
-      if (shouldFetchTasksRef.current) {
-        const fetchedTasks = await tasksFunc().getTasks();
-        setTasks(fetchedTasks);
-        shouldFetchTasksRef.current = false;
-      }
-    };
-
-    fetchTasks();
-  });
+    (async () => {
+      const resp = await tasksFunc().getTasks();
+      setTasks(resp.tasks);
+    })();
+  }, [refresh]);
 
   // 切换任务完成状态
-  const toggleTask = async (id, task) => {
+  const toggleTask = async (id) => {
+    const task = tasks.find(task => task.id === id);
     if (task.status === 'completed') {
-      await tasksFunc().updateTask(task.id, { ...task, status: 'active' });
+      tasksFunc().updateTask(id, { status: 'active' });
     } else {
-      await tasksFunc().updateTask(task.id, { ...task, status: 'completed' });
+      tasksFunc().updateTask(id, { status: 'completed' });
     }
+    setRefresh(before=>before+1);
   };
 
   // 添加标签
   const addTag = (tag) => {
     if (!tag.trim() || tags.includes(tag)) return;
-    setTags(prev => [...prev, tag]);
+    setTags(prev => ([...prev, tag]));
   };
 
   // 删除标签
   const deleteTag = (tagToDelete) => {
     // 检查是否有任务使用该标签
-    const tasksWithTag = tasks.some(task => task.category === tagToDelete);
+    const tasksWithTag = tasks.some(task => task.tag === tagToDelete);
 
     if (tasksWithTag) {
       if (!window.confirm(`标签 "${tagToDelete}" 下还有任务，确定要删除吗？`)) {
@@ -147,10 +124,10 @@ const App = () => {
       }
 
       // 同时删除使用该标签的任务
-      setTasks(prev => prev.filter(task => task.category !== tagToDelete));
+      setTasks(prev => (prev.filter(task => task.tag !== tagToDelete)));
     }
 
-    setTags(prev => prev.filter(tag => tag !== tagToDelete));
+    setTags(prev => (prev.filter(tag => tag !== tagToDelete)));
   };
 
   // 过滤任务
@@ -176,6 +153,7 @@ const App = () => {
     chatStreamRef.current.send(message);
     chatStreamRef.current.onmessage = (event) => callback(event.data);
   };
+
   // 如果未解锁，显示AI聊天门禁界面
   if (!isUnlocked) {
     return <AIChatGate onAddMessage={onAddMessage} onPasswordSuccess={handlePasswordSuccess} />;

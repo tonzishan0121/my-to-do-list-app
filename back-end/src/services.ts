@@ -60,7 +60,7 @@ export async function addTask(task: Omit<Task, 'id' | 'createdAt' | 'deletedAt'>
  * @param task 要更新的任务（需要包含id）
  * @returns 更新后的任务 | null (如果任务不存在或已删除)
  */
-export async function updateTask(task: Omit<Task, 'createdAt' | 'deletedAt'>): Promise<Task | {content: string}> {
+export async function updateTask(task: Partial<Task>): Promise<Task | {content: string}> {
   const tasksData = await readTasksFile();
 
   const index = tasksData.tasks.findIndex(t => t.id === task.id);
@@ -77,10 +77,9 @@ export async function updateTask(task: Omit<Task, 'createdAt' | 'deletedAt'>): P
   
   // 保留原始的createdAt和deletedAt
   const updatedTask = {
-    ...task,
-    createdAt: tasksData.tasks[index]!.createdAt,
-    deletedAt: null // 修改任务时，通常不需要保留 deletedAt，除非是特殊的“恢复”操作
-  };
+    ...tasksData.tasks[index],
+    ...task
+  } as Task;
   
   tasksData.tasks[index] = updatedTask;
   tasksData.metadata.lastUpdated = Date.now();

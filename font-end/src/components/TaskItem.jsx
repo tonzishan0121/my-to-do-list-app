@@ -5,7 +5,7 @@ import './TaskItem.less';
 
 const TaskItem = ({ task, isSelected, onSelect, onDeselect, onDelete, onToggle }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editTitle, setEditTitle] = useState(task.title);
+  const [editTitle, setEditTitle] = useState(task.content);
   
   const handleDelete = () => {
     onDelete(task.id);
@@ -32,7 +32,7 @@ const TaskItem = ({ task, isSelected, onSelect, onDeselect, onDelete, onToggle }
   };
   
   const handleCancel = () => {
-    setEditTitle(task.title);
+    setEditTitle(task.content);
     setIsEditing(false);
   };
   
@@ -76,7 +76,7 @@ const TaskItem = ({ task, isSelected, onSelect, onDeselect, onDelete, onToggle }
   
   return (
     <div 
-      className={`task-item ${task.completed ? 'completed' : ''} ${isSelected ? 'selected' : ''}`}
+      className={`task-item ${task.status ?? ''} ${isSelected ? 'selected' : ''}`}
       onClick={handleSelect}
       onBlur={handleDeselect}
       tabIndex={0}
@@ -84,9 +84,9 @@ const TaskItem = ({ task, isSelected, onSelect, onDeselect, onDelete, onToggle }
     >
       <Checkbox.Root 
         className="task-checkbox" 
-        checked={task.completed}
+        checked={task.status === 'completed'}
         onCheckedChange={handleToggle}
-        aria-label={task.completed ? "标记为未完成" : "标记为完成"}
+        aria-label={task.status === 'completed' ? "标记为未完成" : "标记为完成"}
       >
         <Checkbox.Indicator className="task-checkbox-indicator">
           <CheckIcon />
@@ -106,12 +106,12 @@ const TaskItem = ({ task, isSelected, onSelect, onDeselect, onDelete, onToggle }
           />
         ) : (
           <div className="task-text" onDoubleClick={handleEdit}>
-            <div className="task-title">{task.title}</div>
+            <div className="task-title">{task.content}</div>
             {task.description && (
               <div className="task-description">{task.description}</div>
             )}
             <div className="task-meta">
-              <div className="task-tag">{task.tag}</div>
+              <div className="task-tag">{task.category}</div>
               <div className="task-time">{formatTime(task.createdAt)}</div>
             </div>
           </div>

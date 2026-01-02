@@ -9,7 +9,7 @@ const iter = async ()=>rl[Symbol.asyncIterator]();
 const line = async ()=> (await (await iter()).next()).value;
 async function testLLM() {
   const llm = new LLMService();
-  const completion = await llm.send("暗号：deepseek，请帮我看看我还有什么没做完的事？");
+  const completion = await llm.send("我猜暗号是：deepseek。");
   console.log(completion);
   let msg;
   while (msg = await line()) {
@@ -40,12 +40,11 @@ async function testDeleteTask() {
 
 async function testUpdateTask() { 
   const task = await updateTask({
-    id: 1766923758853,
-    content: '测试任务',
-    category: 'default',
+    id: 1767324121517,
     description: '我不测试了',
     status: 'active',
   });
   console.log(task);
 }
 testLLM();
+

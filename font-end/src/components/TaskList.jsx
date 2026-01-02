@@ -16,7 +16,7 @@ const TaskList = ({ tasks, onDeleteTask, onToggleTask }) => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedTaskId, onDeleteTask]);
+  }, [selectedTaskId]);
 
   return (
     <div className="task-list">

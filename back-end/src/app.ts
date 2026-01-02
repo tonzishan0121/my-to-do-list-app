@@ -1,13 +1,14 @@
+import 'dotenv/config';
 import express, {Application} from 'express';
 import cors from 'cors';
-import routes from './src/routes';
-import { LLMService } from './src/llmService';
+import routes from './routes';
+import { LLMService } from './llmService';
 import { WebSocketServer } from 'ws';
 
 const app:Application = express();
 const PORT = process.env.PORT || 3000;
-
-const wss = new WebSocketServer({ port: 8080 }, () => { console.log('WebSocket运行在端口 8080') });
+const wssPort = process.env.WSSPORT?Number(process.env.WSSPORT):8000;
+const wss = new WebSocketServer({ port: wssPort }, () => { console.log(`WebSocket运行在端口 ${wssPort}`) });
 const chatMap = new WeakMap();   // ws -> messages[]
 
 // 中间件

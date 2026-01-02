@@ -93,6 +93,8 @@
   - 后端
     ```shell
     cd back-end/
+    npm install -g pnpm@latest-10    //整个项目依赖pnpm和typescript，所以需要全局安装依赖
+    pnpm add -D tsx
     pnpm install
     pnpm run dev
     ```  
@@ -102,7 +104,7 @@
     pnpm install
     pnpm run dev
     ```
-- 已测试过的环境（例如 Node.js v19，Windows 11）。  
+- 已测试过的环境（ Node.js v20/21，Windows 11/Unbuntu）。  
 - 已知问题与不足。
   - 因开发时间太赶，没有采用流式接口(stream)，所以目前只能等待后端返回完整的数据，再然后进行渲染，假如响应速度过慢，用户需要等很久，但是我用一个loading的svg来进行提示，用户知道正在加载中，用户体验会更好一些。  
 

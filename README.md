@@ -1,75 +1,121 @@
-# React + TypeScript + Vite
+# 基于LLM实现的智能可拓展TODO List 项目说明文档
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## 0. 项目
+- 一个TODO List项目，基于LLM实现智能可拓展功能。
+- 通过WebSocket实现实时与后端AI交互。
 
-Currently, two official plugins are available:
+## 1. 技术选型
+- **编程语言**：TypeScript + JSX。理由：
+  - 前后端可以共用一套类型接口;
+  - 对后端来说这是IO密集型任务，JavaScript的消息队列能很好的处理该场景;
+  - npm可以直接引入OpenAI库实现LLM集成，可以直接专注业务开发。  
+- **框架/库**：
+  - 前端**Vite+React**：我已经做了一年React开发，熟悉React原理及开发，并且React生态丰富，很适合做这种小型demo。
+  - 后端**Express+OpenAI**：Express作为一个很成熟的后端框架，不仅对TS的支持度很高，对JSON的支持度也很高。更重要的是对前端开发人员很友好，共用一套语法标准。
+  - **数据库/存储**：服务端使用JSON文件存储，理由：轻量、不需要额外的部署、与JS/TS向性好。  
+    - 不用SQL?->我对APP的定位是一个个人使用，可跨平台的小web应用，SQL显然是小题大做。
+    - 不用MongoDB/Redis?->一个SQL本地文件就能处理好，不需要开额外的服务。
+    - 不用excel/csv?(excel易出现乱码问题，csv对内容中的逗号可能会出现非预期bug),综合下来，选择JSON文件存储是最优方案。
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 2. 项目结构设计
+- 本项目采用前后端分离，分别放在 `font-end/`（前端）和 `back-end/`（后端）目录下。
+- 目录结构示例：
+  ```
+  .
+  ├── README.md
+  ├── back-end/
+  │   ├── app.ts                  # 后端入口：Express + WebSocket 启动、全局中间件
+  │   ├── package.json
+  │   └── src/
+  │       ├── routes.ts           # REST 路由（/api/tasks）
+  │       ├── services.ts         # 任务读写与软删除/清理逻辑
+  │       ├── llmService.ts       # LLM 集成：解析消息并调用工具函数
+  │       ├── types.ts            # TypeScript 类型定义（Task 等）
+  │       ├── tasks.json          # 示例/持久化任务数据（演示用）
+  │       └── test.ts             # 本地测试脚本
+  └── font-end/
+      ├── package.json
+      ├── index.html
+      └── src/
+          ├── main.tsx
+          ├── App.jsx             # 前端入口：状态管理、API/WS 封装与 UI 布局
+          └── components/
+              ├── TaskInput.jsx   # 任务输入表单与标签选择
+              ├── TaskList.jsx    # 任务列表容器
+              ├── TaskItem.jsx    # 单个任务项（编辑/删除/完成）
+              ├── TagManager.jsx  # 标签管理（添加/删除）
+              ├── AIChatGate.jsx  # AI 门禁界面（解锁暗号流程）
+              └── AIChat.jsx      # AI 聊天 UI（与后端 WebSocket 交互）
+  ```
 
-## React Compiler
+- 模块职责说明：
+  - `back-end/app.ts`：启动服务器，配置 CORS、body 解析，注册路由与 WebSocket 服务；包含全局错误与 404 处理。
+  - `back-end/src/routes.ts`：暴露任务相关的 REST API（GET/POST/PUT/DELETE），处理请求验证并返回标准响应。
+  - `back-end/src/services.ts`：封装对 `tasks.json` 的读取/写入逻辑；实现 ID 生成、软删除、以及超过 15 天软删除项的自动清理。
+  - `back-end/src/llmService.ts`：与 LLM（deepseek-chat）交互，维护对话历史，解析模型的工具调用并映射到 `addTask`/`updateTask`/`deleteTask`/`getTasks` 等函数。
+  - `back-end/src/types.ts`：定义 `Task`、`TasksData` 等类型，供前后端统一使用（便于扩展与类型检查）。
+  - `back-end/src/tasks.json`：演示/持久化数据（建议仅用于开发/演示，生产建议迁移到数据库）。
+  - `font-end/src/App.jsx`：应用主逻辑，负责加载任务、调用后端 API、管理标签、打开/关闭 AI 聊天和标签管理界面。
+  - `font-end/src/components/*`：UI 组件库，负责任务输入、渲染、交互、AI 聊天等视图层逻辑。
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
 
-Note: This will impact Vite dev & build performances.
+## 3. 需求细节与决策
+- 描述是否必填？如何处理空输入？ 
+  - 描述是可选项，描述的输入框默认时是收起的，可以选择展开，不强制输入。
+  - 通过前端检查，输入框为空时，无法提交，会提示用户输入，后端也会再做一次检查。 
+- 已完成的任务在 UI 中如何显示？
+  - 已完成的任务在 UI 中显示为灰色并且有一根删除线，一目了然。  
+- 任务排序逻辑（默认按创建时间，用户可选按优先级）。  
+  - 默认按创建时间排序，因为定位是个人使用，所以默认不会有大量任务（上百条）。
+  - 如果真的有大量任务，在前端实现了分类，通过分类找到自己想要找的任务，比排序更高效。
+  - 如果用户不填任务分类，可以通过LLM来添加任务，ai会自动完成任务分类，并且不会主动增加任务类别，除非用户直接告诉ai添加新的任务分类。
+- 扩展功能：自设知识库的LLM高度集成。
+  - 刚进入时会有一个简单的身份验证，具体模式是与ai对暗号，如果输入不正确无法进入任务界面，相较传统的密码验证，可玩度更高，并且充满趣味和人情味。
+  - 添加任务支持与ai进行交流，ai会给你建议，会跟你聊天，会通过调用提供的工具，帮你直接完成操作。
+  - 例如我说：我明天要开车去保养，顺便买点菜来晚上做火锅请亲戚来家里吃法。ai会把任务拆解成三步：1. 新建任务：保养汽车，并且自动进行任务归类、2.  新建任务：买菜，并且自动进行任务归类、3. 新建任务：做火锅，并且自动进行任务归类等。
+  - 对于危险性操作：比如删除任务，添加任务，修改任务，当用户没有明确说要让你做，LLM会首先请求用户许可。
 
-## Expanding the ESLint configuration
+## 4. AI 使用说明
+- 是否使用 AI 工具？
+  - 首先是项目集成的LLM工具（deepseek开放API）。
+  - 其次是开发阶段：首先要确定技术选型，刚开始我也考虑过SQL，Python+OpenAPI的技术方案，但是在跟ai进行探讨之后最终选择了当前技术方案。
+  - 然后是简单的to-do-list APP，现存的大模型已经能做的很好了，直接让ai一步完成UI设计，切图，前后端代码大体框架的搭建。 
+- 使用 AI 的环节：  
+  - 方案探讨，明确各种方案的优缺点。（GLM）  
+  - AI切图页面设计（wave-fox）
+  - 重复的简单代码 （Copilot）  
+- AI 输出如何修改：
+  - AI一开始主张任务分类的处理是文案和英文单词进行映射(购物->shopping)，考虑到一个中文可能有不同的翻译，且为了前后端统一口径，我改成了直接用中文作为类别名称：购物，个人，家庭等。
+  - AI一开始将任务和Tags一起存在localStorage中，我决定将任务和Tags分开存储，并且只在localStorage中存储Tags，因为Tags只关系到用户本地的显示与分类，不会对任务数据产生影响，而避免本地任务和接口数据冲突以及LLM做的操作本地没有捕捉到，每次修改都要重新调用接口，拿最新的数据。
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 5. 运行与测试方式
+- 本地运行方式。
+  - 后端
+    ```shell
+    cd back-end/
+    pnpm install
+    pnpm run dev
+    ```  
+  - 前端
+    ```shell
+    cd font-end/
+    pnpm install
+    pnpm run dev
+    ```
+- 已测试过的环境（例如 Node.js v19，Windows 11）。  
+- 已知问题与不足。
+  - 因开发时间太赶，没有采用流式接口(stream)，所以目前只能等待后端返回完整的数据，再然后进行渲染，假如响应速度过慢，用户需要等很久，但是我用一个loading的svg来进行提示，用户知道正在加载中，用户体验会更好一些。  
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## 6. 总结与反思
+- 如果有更多时间，你会如何改进？  
+  1. 增加注册功能，通过数据库来保存用户信息，这样可以分享给别人用，就不再是一个自己玩的小demo了。
+  2. 流式输入输出，优化用户端体验。
+  3. 跑一个本地大模型，节省买LLM的token的钱。
+  4. 增强ai的功能，实现一个接口，可以随便修改ai的人设和说话风格。
+  5. 增加后端日志记录，方便排查问题。
+  6. 把前端的代码也用ts重构，方便后续开发。
+- 你觉得这个实现的最大亮点是什么？  
+  1. 集成了LLM，即使有很多代码中没能实现的功能，只要是通过crud进行组合能实现的功能，都有可能被LLM一步步完成。
+  2. LLM门禁，不仅保证了安全，还挺好玩，没事的时候可以逗一逗AI，或者跟他聊聊天。
+  3. WebSocket，双端保持连接，实时更新，用户体验会更好一些，并且用weakMap来保存会话，不会产生内存泄漏，为后续实现多用户提供天然支持。
+  4. 使用响应式布局，不仅电脑端，手机端也能正式使用。
